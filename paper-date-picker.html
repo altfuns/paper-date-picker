@@ -170,8 +170,8 @@ Android.
                   </template>
                 </div>
               </div>
-              <paper-item disabled?="{{!model.date}}" class="day {{ {today: model.isToday, selected: selected} | tokenList }}" layout vertical center>
-                <div>{{model.date|dateFormat('D')}}</div>
+              <paper-item disabled?="{{!model.day}}" class="day {{ {today: model.isToday, selected: selected} | tokenList }}" layout vertical center>
+                <div>{{model.day}}</div>
               </paper-item>
             </template>
           </core-list>
@@ -201,7 +201,6 @@ Android.
       },
       observe: {
         '$.calendarList._viewportSize': '_viewportSizeChanged',
-        '$.calendarList._scrollTop': '_scrollTopChanged'
       },
       localeChanged: function() {
         moment.locale(this.locale);
@@ -226,87 +225,98 @@ Android.
         }
 
         // add the current month to the calendar
-        this.addMonthToCalendar(this.value);
-        this.loadMoreUpper();
-        this.loadMoreLower();
+        this.populateCalendar(this.value.getFullYear());
         this.scrollToDate();
       },
       loadMoreUpper: function(e) {
-        this.populateCalendar(-12);
+        /*
+        console.log('loadMoreUpper');
+        this.populateCalendar(this.months[0].year - 1);
+        */
         e && e.target.clearUpper();
       },
       loadMoreLower: function(e) {
-        this.populateCalendar(12);
+        /*
+        console.log('loadMoreLower');
+        this.populateCalendar(this.months[this.months.length-1].year + 1);
+        */
         e && e.target.clearLower();
       },
-      populateCalendar: function(count) {
-        // negative count adds to front of the list, positive count adds to the end.
+      populateCalendar: function(year) {
+        var days, pad, year, month, day, date;
+        var prepend = this.months[0] && year < this.months[0].year;
+        var add = prepend ? 'unshift' : 'push';
+        var thisYear = this.today.getFullYear();
+        var thisMonth = this.today.getMonth();
+        var thisDay = this.today.getDate();
 
-        if (!this.months) {
-          this.addMonthToCalendar(this.value);
-        }
+        console.log('populating');
 
-        // When adding content above, keep the current content in the viewport
-        if (count < 0 && this._calendarReady) {
-          var cal = this.$.calendarList;
-          var origHeight = cal.scrollHeight;
-          var origTop = cal.scrollTop;
-          var origCount = count;
-          var restoreScrollPos = function() {
-            cal.scrollTop = (cal.scrollHeight - origHeight) + origTop;
-            this.removeEventListener('calendar-size-changed', restoreScrollPos);
-          }.bind(this);
-          this.addEventListener('calendar-size-changed', restoreScrollPos);
-        }
+        for (var m=0; m<12; m++) {
+          month = prepend ? 11 - m : m;
+          days = [];
+          date = new Date(year, month, 1);
+          pad = date.getDay();
 
-        // populate `count` months
-        var startMonth = count < 0 ? this.months[0] : this.months[this.months.length-1];
-        var month;
-        for (var n=1; n<=Math.abs(count); n++) {
-          month = new Date(startMonth.year, startMonth.month + (count < 0 ? -n: n));
-          this.addMonthToCalendar(month, count < 0);
-        }
-      },
-      addMonthToCalendar: function(month, prepend) {
-        month = new Date(month.getTime());  // clone value
-        var days = [];
-        var monthIdx = month.getMonth();
-        var pad = month.getDay();
-        var year = month.getFullYear();
+          // add "padding" days
+          for (d=0; d<pad; d++) {
+            days.push({day: null});
+          }
 
-        if (!this._listStartMonth || month < this._listStartMonth) {
-          this._listStartMonth = month;
-        }
+          // add actual days 
+          day = 1;
+          while (date.getMonth() == month) {
+            days.push({
+              year: year,
+              month: month,
+              day: day,
+              isToday: year == thisYear && month == thisMonth && day == thisDay
+            });
+            date.setDate(++day);
+          }
+          // reset month back one day
+          date.setDate(0);
 
-        // add "padding" days
-        for (d=0; d<pad; d++) {
-          days.push({date: null});
-        }
-
-        // add actual days 
-        var date, d = 1;
-        while (month.getMonth() == monthIdx) {
-          date = new Date(year, monthIdx, d);
-          days.push({
-            date: date,
-            isToday: date.getTime() == this.today.getTime()
+          // use push/unshift when appropriate
+          this.months[add]({
+            year: year,
+            month: month
           });
-          month.setDate(++d);
+          this.days[add](days);
         }
-        // reset month back one day
-        month.setDate(0);
+        
+        var cal = this.$.calendarList;
+        var origHeight = cal.scrollHeight;
+        if (origHeight) {
+          // TODO: Can't figure out how to get scrollTop to update correctly
+          // when height changes during every little change. Changing scrollTop
+          // somehow causes the viewport height to change, which immediately
+          // invalidates the set scrollTop value. UGH.
+          var updatePosition = function() {
+            cal.scrollTop += (cal.scrollHeight - origHeight);
+            origHeight = cal.scrollHeight;
+            cal._boundPositionItems();
+            this.removeEventListener('calendar-size-changed', updatePosition);
+          }.bind(this);
 
-        // use push/unshift when appropriate
-        add = prepend ? 'unshift' : 'push';
-        this.months[add]({
-          year: month.getFullYear(),
-          month: month.getMonth()
-        });
-        this.days[add](days);
+          this.addEventListener('calendar-size-changed', updatePosition);
+        }
+
+        console.log('populating done');
+      },
+      _viewportSizeChanged: function(oldVal, newVal) {
+        console.log('viewportSize changed: ', oldVal, newVal);
+        if (!this._calendarReady) {
+          this._calendarReady = true;
+          this.fire('calendar-ready');
+        } else {
+          this.fire('calendar-size-changed');
+        }
+        if (this.debugViewportChange) debugger;
       },
       getMonthIdx: function(year, month) {
-        var yearDiff = (year - this._listStartMonth.getFullYear());
-        var monthDiff = (month - this._listStartMonth.getMonth());
+        var yearDiff = (year - this.months[0].year);
+        var monthDiff = (month - this.months[0].month);
         return (yearDiff * 12) + monthDiff;
       },
       tapHeadingDay: function() {
@@ -322,17 +332,16 @@ Android.
       tapHeadingYear: function() {
         this.$.pages.selected = 2;
       },
-      populateCalendarToMonth: function(year, month) {
-        var idx = this.getMonthIdx(year, month);
-        console.log(this.months.length, idx);
-        if (idx < 0) {
-          this.populateCalendar(idx);
-        } else if (idx >= this.months.length) {
-          this.populateCalendar((idx - this.months.length) + 1)
+      populateCalendarToYear: function(year) {
+        while (year < this.months[0].year) {
+          this.populateCalendar(this.months[0].year - 1);
+        }
+        while (year > this.months[this.months.length-1].year) {
+          this.populateCalendar(this.months.length);
         }
       },
       scrollToMonth: function(year, month) {
-        this.populateCalendarToMonth(year, month);
+        this.populateCalendarToYear(year);
         var idx = this.getMonthIdx(year, month);
         var cal = this.$.calendarList;
         if (!this._calendarReady) {
@@ -348,13 +357,6 @@ Android.
           date = this.value;
         }
         this.scrollToMonth(date.getFullYear(), date.getMonth());
-      },
-      _viewportSizeChanged: function() {
-        if (!this._calendarReady) {
-          this._calendarReady = true;
-          this.fire('calendar-ready');
-        }
-        this.fire('calendar-size-changed');
       },
       selectedDateChanged: function() {
         this.value = this.selectedDate.date;
