@@ -14,7 +14,7 @@ Android.
 -->
 
 <script src="../moment/min/moment-with-locales.min.js"></script>
-<script src="../deep-diff/releases/deep-diff-0.3.0.min.js"></script>
+<script src="../es6-shim/es6-shim.min.js"></script>
 
 <polymer-element name="paper-date-picker" attributes="locale minYear maxYear">
   <template>
@@ -193,6 +193,8 @@ Android.
   </template>
 
   <script>
+    var loadMoreMonths = 3;
+
     Polymer("paper-date-picker", {
       publish: {
         locale: '',
@@ -213,39 +215,43 @@ Android.
         this.days = [];
         this.months = [];
         this.years = [];
-        this.today = new Date();
-        this.today.setHours(0, 0, 0, 0);
         this.narrow = false;
         this.weekdays = moment.weekdays();
         this.monthNames = moment.months();
         this.isTouch = 'ontouchstart' in window;
         this.localeChanged();
+        
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+        this.today = today.getTime();
 
         if (!this.value) {
           this.value = new Date();
         }
 
         // add the current month to the calendar
-        this.addMonthToCalendar(this.value);
+        this._insertMonth(this.value);
         this.loadMoreUpper();
         this.loadMoreLower();
         this.scrollToDate();
       },
       loadMoreUpper: function(e) {
-        this.populateCalendar(-12);
+        this.populateCalendar(-loadMoreMonths);
         e && e.target.clearUpper();
+        var cal = this.$.calendarList;
+        //cal.updateScrollPosition(cal._scrollTop);
       },
       loadMoreLower: function(e) {
-        this.populateCalendar(12);
+        this.populateCalendar(loadMoreMonths);
         e && e.target.clearLower();
       },
       populateCalendar: function(count) {
         // negative count adds to front of the list, positive count adds to the end.
-
         if (!this.months) {
-          this.addMonthToCalendar(this.value);
+          this._insertMonth(this.value);
         }
 
+        /* HACK
         // When adding content above, keep the current content in the viewport
         if (count < 0 && this._calendarReady) {
           var cal = this.$.calendarList;
@@ -258,51 +264,59 @@ Android.
           }.bind(this);
           this.addEventListener('calendar-size-changed', restoreScrollPos);
         }
+        */
 
         // populate `count` months
         var startMonth = count < 0 ? this.months[0] : this.months[this.months.length-1];
         var month;
         for (var n=1; n<=Math.abs(count); n++) {
-          month = new Date(startMonth.year, startMonth.month + (count < 0 ? -n: n));
-          this.addMonthToCalendar(month, count < 0);
+          month = new Date(startMonth.data.year, startMonth.data.month + (count < 0 ? -n: n));
+          this._insertMonth(month, count < 0);
         }
       },
-      addMonthToCalendar: function(month, prepend) {
+      _insertMonth: function(month, prepend) {
         month = new Date(month.getTime());  // clone value
-        var days = [];
-        var monthIdx = month.getMonth();
+        // the start index at which we'll be inserting days/months
+        var dayIdx = prepend ? 0 : this.days.length;
+        var startIdx = dayIdx;
+        var monthIdx = prepend ? 0 : this.months.length;
+        var monthNum = month.getMonth();
         var pad = month.getDay();
         var year = month.getFullYear();
+        var groupLength = 0;
 
         if (!this._listStartMonth || month < this._listStartMonth) {
           this._listStartMonth = month;
         }
 
         // add "padding" days
-        for (d=0; d<pad; d++) {
-          days.push({date: null});
+        for (var i=0; i < pad; i++) {
+          this.days.splice(dayIdx, 0, {date: null});
         }
+        dayIdx += pad;
 
         // add actual days 
         var date, d = 1;
-        while (month.getMonth() == monthIdx) {
-          date = new Date(year, monthIdx, d);
-          days.push({
+        while (month.getMonth() == monthNum) {
+          date = new Date(year, monthNum, d);
+          this.days.splice(dayIdx, 0, {
             date: date,
-            isToday: date.getTime() == this.today.getTime()
+            isToday: date.getTime() == this.today
           });
+          dayIdx++;
           month.setDate(++d);
         }
         // reset month back one day
         month.setDate(0);
 
         // use push/unshift when appropriate
-        add = prepend ? 'unshift' : 'push';
-        this.months[add]({
-          year: month.getFullYear(),
-          month: month.getMonth()
+        this.months.splice(monthIdx, 0, {
+          length: dayIdx - startIdx,
+          data: {
+            year: year,
+            month: monthNum
+          }
         });
-        this.days[add](days);
       },
       getMonthIdx: function(year, month) {
         var yearDiff = (year - this._listStartMonth.getFullYear());
@@ -324,7 +338,6 @@ Android.
       },
       populateCalendarToMonth: function(year, month) {
         var idx = this.getMonthIdx(year, month);
-        console.log(this.months.length, idx);
         if (idx < 0) {
           this.populateCalendar(idx);
         } else if (idx >= this.months.length) {
@@ -372,6 +385,7 @@ Android.
       return moment(date).format(format);
     };
 
+    // TODO this is just for debugging core-list scroll issues. Remove this.
     window.serialize = function(obj) {
       var func = function(key, val) {
         if (!key) return val;
