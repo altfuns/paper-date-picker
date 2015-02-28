@@ -32,26 +32,32 @@ Android.
       </template>
       <core-animated-pages selectedProperty="active" transitions="cross-fade" id="pages" notap relative class="noscroll">
         <section id="chooseDay" fit class="noscroll-inner">
+          <!--
           <core-scroll-threshold id="calendarListThreshold" scrollTarget="{{$.calendarList}}" 
             lowerThreshold="512" upperThreshold="512" on-lower-trigger="{{loadMoreLower}}" 
             on-upper-trigger="{{loadMoreUpper}}"></core-scroll-threshold>
-          <core-list class="noscroll-scroller" id="calendarList" data="{{days}}" groups="{{months}}" selection="{{selectedDate}}" 
-            grid width="34" height="32" cross-fade fit>
+          -->
+          <core-list class="noscroll-scroller" id="calendarList" data="{{months}}" enableSelection="false" cross-fade fit>
             <template>
-              <div class="divider" divider>
+              <div class="month">
                 <div class="month-name" on-press="{{scrollToMonth(model.year, model.month)}}">
-                  {{monthNames[groupModel.month]}} {{groupModel.year}}
+                  {{monthNames[model.month]}} {{model.year}}
                 </div>
                 <div class="month-weekdays" layout horizontal>
-                  <template repeat="{{weekday in weekdays}}">
-                    <div class="day">{{weekday[0]}}</div>
-                  </template>
+                  <div class="day">S</div>
+                  <div class="day">M</div>
+                  <div class="day">T</div>
+                  <div class="day">W</div>
+                  <div class="day">T</div>
+                  <div class="day">F</div>
+                  <div class="day">S</div>
                 </div>
+                <core-selector>
+                  <template repeat="{{day in model.days}}">
+                    <div class="day">{{day || ""}}</div>
+                  </template>
+                </core-selector>
               </div>
-              <core-item disabled?="{{!model.day}}" class="day {{ {today: model.isToday, selected: selected} | tokenList }}" 
-                layout vertical center>
-                <div>{{model.day}}</div>
-              </paper-item>
             </template>
           </core-list>
         </section>

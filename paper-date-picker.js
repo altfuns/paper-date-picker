@@ -32,8 +32,8 @@ Polymer("paper-date-picker", {
     this.monthNames = moment.months();
     this.isTouch = 'ontouchstart' in window;
     this.localeChanged();
-    this.startYear = 1900;
-    this.endYear = 2100;
+    this.startYear = this.startYear || this.today.getFullYear();
+    this.endYear = this.endYear || this.today.getFullYear() + 20;
     this.populateCalendar();
     this.headingDate = this.value ? this.value : new Date();
     this.scrollToDate(this.headingDate);
@@ -62,17 +62,12 @@ Polymer("paper-date-picker", {
         
         // add "padding" days
         for (d=0; d<date.getDay(); d++) {
-          days.push({day: null});
+          days.push('');
         }
 
         // add actual days 
         while (date.getMonth() == month) {
-          days.push({
-            year: year,
-            month: month,
-            day: day,
-            isToday: year == thisYear && month == thisMonth && day == thisDay
-          });
+          days.push(day);
           date.setDate(++day);
         }
         monthData = {
@@ -81,7 +76,6 @@ Polymer("paper-date-picker", {
           days: days
         };
         this.months.push(monthData);
-        this.days.push(days);
       }
       this.years.push({year: year});
     }
@@ -120,10 +114,10 @@ Polymer("paper-date-picker", {
     var cal = this.$.calendarList;
     if (!this._calendarReady) {
       this.addEventListener('calendar-ready', function() {
-        cal.scrollToGroup(idx);
+        cal.scrollToItem(idx);
       });
     } else {
-      cal.scrollToGroup(idx);
+      cal.scrollToItem(idx);
     }
   },
   scrollToDate: function(date) {
@@ -190,7 +184,7 @@ Polymer("paper-date-picker", {
     var month = this.value.getMonth();
     var idx = this.getMonthIdx(year, month);
     var monthStart = (new Date(year, month, 1)).getDay();
-    var day = this.days[idx][monthStart + this.value.getDate() - 1];
+    //var day = this.days[idx][monthStart + this.value.getDate() - 1];
     if (!this._calendarReady) {
       this.addEventListener('calendar-ready', function() {
         this.$.calendarList.$.selection.select(day);

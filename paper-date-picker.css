@@ -73,9 +73,12 @@ core-list::-webkit-scrollbar {
 #pages {
   background: #fff;
 }
+#calendarList > .month {
+  padding: 0 9px;
+}
 #calendarList .month-name {
   cursor: pointer;
-  padding: 8px;
+  padding: 8px 0;
   font-size: 14px;
   text-align: center;
   font-weight: bold;
@@ -97,6 +100,7 @@ core-list::-webkit-scrollbar {
   line-height: 32px;
   text-align: center;
   vertical-align: middle;
+  float: left;
 }
 #calendarList core-item.day div {
   width: 32px;
