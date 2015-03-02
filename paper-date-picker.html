@@ -30,36 +30,44 @@ Android.
           </div>
         </div>
       </template>
-      <core-animated-pages selectedProperty="active" transitions="cross-fade" id="pages" notap relative class="noscroll">
-        <section id="chooseDay" fit class="noscroll-inner">
+      <core-animated-pages selectedProperty="active" transitions="cross-fade" id="pages" notap relative>
+        <section id="chooseDay" fit>
           <!--
           <core-scroll-threshold id="calendarListThreshold" scrollTarget="{{$.calendarList}}" 
             lowerThreshold="512" upperThreshold="512" on-lower-trigger="{{loadMoreLower}}" 
             on-upper-trigger="{{loadMoreUpper}}"></core-scroll-threshold>
           -->
-          <core-list class="noscroll-scroller" id="calendarList" data="{{months}}" enableSelection="false" cross-fade fit>
-            <template>
-              <div class="month">
-                <div class="month-name" on-press="{{scrollToMonth(model.year, model.month)}}">
-                  {{monthNames[model.month]}} {{model.year}}
-                </div>
-                <div class="month-weekdays" layout horizontal>
-                  <div class="day">S</div>
-                  <div class="day">M</div>
-                  <div class="day">T</div>
-                  <div class="day">W</div>
-                  <div class="day">T</div>
-                  <div class="day">F</div>
-                  <div class="day">S</div>
-                </div>
-                <core-selector>
-                  <template repeat="{{day in model.days}}">
-                    <div class="day">{{day || ""}}</div>
-                  </template>
-                </core-selector>
+          <div id="calendarList" class="noscroll" cross-fade fit>
+            <div id="calendarListViewPort">
+              <div id="rafNodes">
+                <template repeat="{{ years }}">
+                  <div class="title-year" id="raf0Year{{year}}">{{year}}</div>
+                  <div class="title-year" id="raf1Year{{year}}">{{year}}</div>
+                </template>
+                <template repeat="{{ day in rafDays }}">
+                  <div class="day" id="raf0Day{{day}}">{{day}}</div>
+                  <div class="day" id="raf1Day{{day}}">{{day}}</div>
+                </template>
+                <template repeat="{{ name in monthNames }}">
+                  <div class="title-month" id="rafMonthName{{name}}">{{name}}</div>
+                </template>
+                <template repeat="{{ n in rafSets }}">
+                  <div class="month" id="raf{{n}}Month">
+                    <div class="month-title">&nbsp;</div>
+                    <div class="month-weekdays" layout horizontal>
+                      <div class="day">S</div>
+                      <div class="day">M</div>
+                      <div class="day">T</div>
+                      <div class="day">W</div>
+                      <div class="day">T</div>
+                      <div class="day">F</div>
+                      <div class="day">S</div>
+                    </div>
+                  </div>
+                </template>
               </div>
-            </template>
-          </core-list>
+            </div>
+          </div>
         </section>
         <section id="chooseYear" fit>
           <core-list id="yearList" data="{{years}}" selection="{{selectedYear}}" cross-fade fit layout vertical>

@@ -69,19 +69,74 @@ core-list::-webkit-scrollbar {
   color: inherit; 
 }
 
+/** No scroll ******************/
+#pages, #pages section .noscroll {
+  width: 256px;
+  height: 248px;
+}
+
+#pages {
+  position: relative;
+  overflow: hidden;
+}
+
+#pages section {
+  position: absolute;
+  left: 0;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+#pages section::-webkit-scrollbar {
+  display: none;
+}
+
 /** Calendar *******************/
 #pages {
   background: #fff;
 }
-#calendarList > .month {
-  padding: 0 9px;
+#calendarListViewPort {
+  /* #pages height * 3 */
+  height: 744px;
 }
-#calendarList .month-name {
-  cursor: pointer;
-  padding: 8px 0;
-  font-size: 14px;
+#rafNodes {
+  position: absolute;
+  top: 0px;
+  padding-left: 300px;
+}
+#rafNodes > div {
+  position: absolute;
+}
+.rows-4 {
+  height: 128px;
+}
+.rows-5 {
+  height: 160px;
+}
+.rows-6 {
+  height: 192px;
+}
+#calendarList {
+  position: relative;
+}
+#calendarList .month {
+  position: absolute;
+  left: 0;
+  padding: 0 9px;
+  width: 238px;
+}
+#calendarList .month-title {
   text-align: center;
+}
+#calendarList .month-title,
+#calendarList .title-month,
+#calendarList .title-year {
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 0;
   font-weight: bold;
+}
+#calendarList .title-month:after {
+  content: " ";
 }
 #calendarList .month-weekdays {
   font-size: 13px;
@@ -92,6 +147,28 @@ core-list::-webkit-scrollbar {
   line-height: 20px;
   cursor: pointer;
 }
+#calendarList .day-padding {
+  height: 32px;
+  float: left;
+}
+#calendarList .day-padding-1 {
+  width: 34px;
+}
+#calendarList .day-padding-2 {
+  width: 68px;
+}
+#calendarList .day-padding-3 {
+  width: 102px;
+}
+#calendarList .day-padding-4 {
+  width: 136px;
+}
+#calendarList .day-padding-5 {
+  width: 170px;
+}
+#calendarList .day-padding-6 {
+  width: 204px;
+}
 #calendarList .day {
   padding: 0 1px;
   width: 32px;
@@ -101,6 +178,17 @@ core-list::-webkit-scrollbar {
   text-align: center;
   vertical-align: middle;
   float: left;
+}
+#calendarList .month-days {
+  *zoom: 1;
+}
+#calendarList .month-days:before,
+#calendarList .month-days:after {
+  content: " ";
+  display: table;
+}
+#calendarList .month-days:after {
+  clear: both;
 }
 #calendarList core-item.day div {
   width: 32px;
