@@ -116,7 +116,6 @@ Polymer("paper-date-picker", {
     var rafNodes = {};
 
     this._monthIdx = 0;
-    this._monthScrollTop = this.$.calendarList.scrollTop;
 
     // Create nodes for use in RAF
     this.$.rafNodes.$ = rafNodes;
@@ -188,39 +187,43 @@ Polymer("paper-date-picker", {
     this._boundRAFHandler = this.updateMonthScroller.bind(this);
 
     // Set the scroll handler
-    var scrolling = false;
-    this.$.calendarList.addEventListener('scroll', function(){
-      var scrollTop = this.$.calendarList.scrollTop;
-      var viewport = this.$.calendarListViewPort;
-      this._monthIdx = this.getMonthIndex(this._monthScrollTop);
-      this._monthScrollTop = scrollTop;
-
-      // add more viewport size if needed
-      if ((scrollTop + this._initialViewportSize) > viewport.offsetHeight) {
-        viewport.offsetHeight += this._initialViewportSize;
-      }
-
-      // offload layout onto RAF
-      if (!scrolling) {
-        requestAnimationFrame(this._boundRAFHandler);
-      }
-      scrolling = true;
-    }.bind(this));
+    this._scrolling = false;
+    var _boundScrollHandler = this.scrollHandler.bind(this);
+    this.$.chooseDay.addEventListener('scroll', _boundScrollHandler);
 
     this.updateMonthScroller();
   },
-  getMonthIndex: function(pos) {
-    var idx, month, bottom, height;
+  scrollHandler: function() {
+    var scrollTop = this.$.chooseDay.scrollTop;
+    var viewport = this.$.calendarListViewPort;
+    this._monthIdx = this.getMonthAtPosition(scrollTop);
+    console.log(scrollTop);
+    console.log(this._monthIdx);
+
+    // add more viewport size if needed
+    if ((scrollTop + this._initialViewportSize) > viewport.offsetHeight) {
+      viewport.offsetHeight += this._initialViewportSize;
+    }
+
+    // offload layout onto RAF
+    if (!this._scrolling) {
+      requestAnimationFrame(this._boundRAFHandler);
+    }
+    this._scrolling = true;
+  },
+  getMonthAtPosition: function(pos) {
+    var idx,top, bottom;
     // TODO: this could possibly be optimized using some clever math
     min = Math.floor(pos / ((this._dayHeight * 6) + this._titleHeight));
     max = Math.ceil(pos / ((this._dayHeight * 4) + this._titleHeight));
     while (min <= max) {
       idx = (min + max) / 2 | 0;
-      month = this.months[idx];
+      top = this.months[idx].top;
+      bottom = this.months[idx].height;
       if (bottom < pos) {
         min = idx + 1;
       }
-      else if ((bottom - height) > pos) {
+      else if (top > pos + this._viewportHeight) {
         max = idx - 1;
       }
       else {
@@ -232,6 +235,10 @@ Polymer("paper-date-picker", {
   updateMonthScroller: function() {
     // WARNING: runs in RAF, do not trigger reflows or unecessary repaints
     // Get first month that would show in the viewport
+
+    // reset this._scrolling so that we can capture the next onScroll
+    this._scrolling = false;
+
     // lay out this month and the next
     this.layoutMonth(0);
     this.layoutMonth(1);
