@@ -41,12 +41,12 @@ Android.
             <div id="calendarListViewPort">
               <div id="rafNodes">
                 <template repeat="{{ years }}">
-                  <div class="title-year" id="raf0Year{{year}}">{{year}}</div>
-                  <div class="title-year" id="raf1Year{{year}}">{{year}}</div>
+                  <div class="raf0 title-year" id="raf0Year{{year}}">{{year}}</div>
+                  <div class="raf1 title-year" id="raf1Year{{year}}">{{year}}</div>
                 </template>
                 <template repeat="{{ day in rafDays }}">
-                  <div class="day" id="raf0Day{{day}}">{{day}}</div>
-                  <div class="day" id="raf1Day{{day}}">{{day}}</div>
+                  <div class="day raf0" id="raf0Day{{day}}">{{day}}</div>
+                  <div class="day raf1" id="raf1Day{{day}}">{{day}}</div>
                 </template>
                 <template repeat="{{ name in monthNames }}">
                   <div class="title-month" id="rafMonthName{{name}}">{{name}}</div>

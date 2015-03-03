@@ -18,7 +18,6 @@ Polymer("paper-date-picker", {
     narrow: {type: 'boolean', value: false, reflect: true},
   },
   observe: {
-    '$.calendarList._viewportSize': '_setCalendarReady',
     '$.yearList._viewportSize': '_setYearListReady',
   },
   localeChanged: function() {
@@ -115,6 +114,8 @@ Polymer("paper-date-picker", {
     var rafSets = 2;
     var rafNodes = {};
 
+    this.debug = {raf: []};
+
     this._monthIdx = 0;
 
     // Create nodes for use in RAF
@@ -164,11 +165,13 @@ Polymer("paper-date-picker", {
     var titleCenter = calcTitle.offsetWidth / 2;
     var daysOffset = titleHeight + calcMonth.querySelector('.month-weekdays').offsetHeight;
 
+    this._scrollTop = 0;
     this._dayHeight = dayHeight;
     this._daysOffset = daysOffset;
     this._titleHeight = titleHeight;
     this._dayWidth = dayWidth;
     this._monthPadding = padding;
+    this._viewportHeight = this.$.calendarList.offsetHeight;
 
     var top = 0;
     for (i=0; i<this.months.length; i++) {
@@ -194,11 +197,10 @@ Polymer("paper-date-picker", {
     this.updateMonthScroller();
   },
   scrollHandler: function() {
-    var scrollTop = this.$.chooseDay.scrollTop;
+    scrollTop = this.$.chooseDay.scrollTop;
     var viewport = this.$.calendarListViewPort;
     this._monthIdx = this.getMonthAtPosition(scrollTop);
-    console.log(scrollTop);
-    console.log(this._monthIdx);
+    this._scrollTop = scrollTop;
 
     // add more viewport size if needed
     if ((scrollTop + this._initialViewportSize) > viewport.offsetHeight) {
@@ -219,7 +221,7 @@ Polymer("paper-date-picker", {
     while (min <= max) {
       idx = (min + max) / 2 | 0;
       top = this.months[idx].top;
-      bottom = this.months[idx].height;
+      bottom = top + this.months[idx].height;
       if (bottom < pos) {
         min = idx + 1;
       }
@@ -240,27 +242,21 @@ Polymer("paper-date-picker", {
     this._scrolling = false;
 
     // lay out this month and the next
-    this.layoutMonth(0);
-    this.layoutMonth(1);
+    this.layoutMonth(this._monthIdx);
+    this.layoutMonth(this._monthIdx + 1);
   },
-  layoutMonth: function(n) {
+  layoutMonth: function(monthIdx) {
     // WARNING: runs in RAF, do not trigger reflows or unecessary repaints
     var rafNodes = this.$.rafNodes.$;
-    var month = this.months[this._monthIdx + n];
+    var month = this.months[monthIdx];
+    var n = monthIdx % 2;
     var rafMonth = rafNodes['raf' + n + 'Month'];
-
-    // layout title
+    var vpTop = this._scrollTop;
+    var vpBottom = vpTop + this._viewportHeight;
     var titleMonth = rafNodes['rafMonthName' + month.name];
     var titleYear = rafNodes['raf' + n + 'Year' + month.year];
     var top = month.top;
-    var top_px = top + 'px';
-    rafMonth.style.top = top_px;
-    titleMonth.style.top = top_px;
-    titleYear.style.top = top_px;
-    titleMonth.style.left = month.nameLeft + 'px';
-    titleYear.style.left = month.yearLeft + 'px';
-
-    // layout days
+    var topPx = top + 'px';
     var padding = this._monthPadding;
     var dayHeight = this._dayHeight;
     var dayWidth = this._dayWidth;
@@ -268,15 +264,30 @@ Polymer("paper-date-picker", {
     var dayLeft = padding;
     var startOn = month.startOn;
     var numDays = month.numDays;
-    
-    var cell, col, row;
+
+    // position the header
+    var cell, col, row, rowTop;
+    if (vpTop <= top && top < vpBottom) {
+      rafMonth.style.top = topPx;
+      titleMonth.style.top = topPx;
+      titleYear.style.top = topPx;
+      titleMonth.style.left = month.nameLeft + 'px';
+      titleYear.style.left = month.yearLeft + 'px';
+    }
+
+    // position days
     for (var i=0; i<numDays; i++) {
       cell = startOn + i;
       col = cell % 7;
       row = Math.floor(cell / 7);
-      day = rafNodes['raf' + n + 'Day' + (i+1)]; 
-      day.style.top = dayTop + (row * dayHeight) + 'px';
-      day.style.left = padding + (col * dayWidth) + 'px';
+      rowTop = dayTop + (row * dayHeight);
+      // only move the day if the target position is in the viewport
+      window.debugVars = [ n, vpTop, rowTop, vpBottom ];
+      if (vpTop <= rowTop && rowTop < vpBottom) {
+        day = rafNodes['raf' + n + 'Day' + (i+1)]; 
+        day.style.top = rowTop + 'px';
+        day.style.left = padding + (col * dayWidth) + 'px';
+      }
     }
   },
   getMonthIdx: function(year, month) {
@@ -352,12 +363,10 @@ Polymer("paper-date-picker", {
     }
   },
   selectedDateChanged: function() {
-    console.log(arguments);
     var d = this.selectedDate;
     this.value = new Date(d.year, d.month, d.day);
   },
   selectedYearChanged: function(oldValue, newValue) {
-    console.log('year changed');
     this.scrollToMonth(this.selectedYear.year, this.headingDate.getMonth());
     if (!oldValue) return;
     if (this.$.pages.selected == 1) {
@@ -377,7 +386,6 @@ Polymer("paper-date-picker", {
     }
   },
   valueChanged: function() {
-    console.log('valueChanged: ', this.value);
     this.headingDate = this.value;
     var year = this.value.getFullYear();
     var month = this.value.getMonth();

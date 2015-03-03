@@ -98,6 +98,12 @@ core-list::-webkit-scrollbar {
   /* #pages height * 3 */
   height: 744px;
 }
+.day.raf0, .title-year.raf0 {
+  background-color: rgba(0, 0, 255, .25);
+}
+.day.raf1, .title-year.raf1 {
+  background-color: rgba(255, 0, 0, .25);
+}
 #rafNodes {
   position: absolute;
   top: 0px;
