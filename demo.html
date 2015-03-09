@@ -21,10 +21,20 @@
       font-size: 14px;
       margin: 0;
       padding: 50px;
+      padding-top: 400px;
     }
+
     paper-shadow {
       display: inline-block !important;
+      float: left;
+      margin-right: 40px;
     }
+
+    table th {
+      text-align: right;
+      padding-right: 1em;
+    }
+
   </style>
 
 </head>
@@ -32,5 +42,38 @@
   <paper-shadow>
     <paper-date-picker></paper-date-picker>
   </paper-shadow>
+
+  <template id="debug" is="auto-binding">
+    <output>
+      <table>
+        <tr><th>fps:</th><td>{{picker._scrollerFPS | toFixed(2)}}</td></tr>
+        <tr><th>actuall scrollTop:</th><td>{{picker._scrollTop}}</td></tr>
+        <tr><th>scroller offset:</th><td>{{picker._virtualOffset}}</td></tr>
+        <tr><th>virt scrollTop:</th><td>{{picker._virtualScrollTop}}</td></tr>
+        <tr><th>scroll height:</th><td>{{picker._scrollerHeight}}</td></tr>
+        <tr><th>viewport height:</th><td>{{picker._viewportHeight}}</td></tr>
+        <tr><th>month idx:</th><td>{{picker._monthIdx}}</td></tr>
+        <tr><th>month:</th><td>{{picker.months[picker._monthIdx].name}}</td></tr>
+        <tr><th>year:</th><td>{{picker.months[picker._monthIdx].year}}</td></tr>
+        <template repeat="{{k in picker.debug|keys}}">
+          <tr><th>{{ k }}:</th><td>{{ picker.debug[k] }}</td></tr>
+        </template>
+      </table>
+    </output>
+  </template>
+  <script>
+    (function() {
+      var $ = document.querySelector.bind(document);
+      var picker = $('paper-date-picker');
+      var debug = $('#debug');
+      debug.picker = picker;
+    })();
+
+    PolymerExpressions.prototype.toFixed = function(value, precision) {
+      return Number(value).toFixed(precision);
+    }
+
+    PolymerExpressions.prototype.keys = Object.keys.bind(Object);
+  </script>
 </body>
 </html>

@@ -27,6 +27,7 @@ Polymer("paper-date-picker", {
     var element = e.originalTarget ? e.originalTarget : e.toElement;
   },
   ready: function() {
+    this.fps = 60;
     this.months = [];
     this.years = [];
     this.today = new Date();
@@ -104,6 +105,7 @@ Polymer("paper-date-picker", {
           rows: weekRows,
           totalRows: this.totalWeekRows
         };
+
         this.months.push(monthData);
         this.totalWeekRows += weekRows;
       }
@@ -121,7 +123,7 @@ Polymer("paper-date-picker", {
     // Create nodes for use in RAF
     this.$.rafNodes.$ = rafNodes;
     this._monthNodes = this.$.calendarList.querySelectorAll('.month');
-    this._initialViewportSize = this.$.calendarListViewPort.offsetHeight;
+    this._scrollerHeight = this.$.calendarListScroller.offsetHeight;
 
     var mapId = function(id, sets) {
       var n = sets === false ? 1 : rafSets;
@@ -165,13 +167,11 @@ Polymer("paper-date-picker", {
     var titleCenter = calcTitle.offsetWidth / 2;
     var daysOffset = titleHeight + calcMonth.querySelector('.month-weekdays').offsetHeight;
 
-    this._scrollTop = 0;
     this._dayHeight = dayHeight;
-    this._daysOffset = daysOffset;
-    this._titleHeight = titleHeight;
     this._dayWidth = dayWidth;
+    this._daysOffset = daysOffset;
     this._monthPadding = padding;
-    this._viewportHeight = this.$.calendarList.offsetHeight;
+    this._titleHeight = titleHeight;
 
     var top = 0;
     for (i=0; i<this.months.length; i++) {
@@ -186,64 +186,79 @@ Polymer("paper-date-picker", {
       top += month.height;
     }
 
-    // Set the RAF handler
-    this._boundRAFHandler = this.updateMonthScroller.bind(this);
+    this._scroller = this.$.chooseDay;
+    this._virtualScrollTop = 0;
+    this._viewportHeight = this.$.calendarList.offsetHeight;
+    this._scrollerEnd = this._scrollerHeight - this._viewportHeight;
+    // position the scroller to have equal runway above and below
+    this._initialOffset = (this._scrollerHeight / 2) - (this._viewportHeight / 2);
+    this._scroller.scrollTop = this._initialOffset;
+    this._scrollTop = this._scroller.scrollTop;
+    this._virtualOffset = 0 - this._initialOffset;
+    this._lastTimestamp = 0;
 
     // Set the scroll handler
+    this._boundRAFHandler = this.updateMonthScroller.bind(this);
     this._scrolling = false;
     var _boundScrollHandler = this.scrollHandler.bind(this);
-    this.$.chooseDay.addEventListener('scroll', _boundScrollHandler);
+    this._scroller.addEventListener('scroll', _boundScrollHandler);
 
     this.updateMonthScroller();
   },
   scrollHandler: function() {
-    scrollTop = this.$.chooseDay.scrollTop;
-    var viewport = this.$.calendarListViewPort;
-    this._monthIdx = this.getMonthAtPosition(scrollTop);
-    this._scrollTop = scrollTop;
+    var scroller = this._scroller;
+    var offset = this._virtualOffset;
+    var scrollTop = scroller.scrollTop;
+    var scrollerEnd = this._scrollerEnd;
 
-    // add more viewport size if needed
-    if ((scrollTop + this._initialViewportSize) > viewport.offsetHeight) {
-      viewport.offsetHeight += this._initialViewportSize;
+    // reset scroller offset when runway reaches the end
+    if (scrollTop >= scrollerEnd || scrollTop <= 0) {
+      // we're about to set scrollTop back to initialOffset, so capture the
+      // difference to add to the virtual offset.
+      var initialOffset = this._initialOffset;
+      offset += (scrollTop - initialOffset);
+      scrollTop = initialOffset;
+      scroller.scrollTop = scrollTop;
+      this._virtualOffset = offset;
     }
+
+    var virtualTop = scrollTop + offset;
+    this._scrollTop = scrollTop;
+    this._virtualScrollTop = virtualTop;
+    this._monthIdx = this.getScrollMonth(virtualTop);
 
     // offload layout onto RAF
     if (!this._scrolling) {
       requestAnimationFrame(this._boundRAFHandler);
     }
     this._scrolling = true;
+    this.fire('paper-date-picker-scroll');
   },
-  getMonthAtPosition: function(pos) {
-    var idx,top, bottom;
-    // TODO: this could possibly be optimized using some clever math
-    min = Math.floor(pos / ((this._dayHeight * 6) + this._titleHeight));
-    max = Math.ceil(pos / ((this._dayHeight * 4) + this._titleHeight));
-    while (min <= max) {
-      idx = (min + max) / 2 | 0;
-      top = this.months[idx].top;
-      bottom = top + this.months[idx].height;
-      if (bottom < pos) {
-        min = idx + 1;
-      }
-      else if (top > pos + this._viewportHeight) {
-        max = idx - 1;
-      }
-      else {
-        return idx;
-      }
-    }
-    return -1;
-  },
-  updateMonthScroller: function() {
+  updateMonthScroller: function(timestamp) {
     // WARNING: runs in RAF, do not trigger reflows or unecessary repaints
     // Get first month that would show in the viewport
+    if (!timestamp) timestamp = 0;
+
+    var deltaMin = 1000 / this.fps;
+    var lastTimestamp = this._lastTimestamp;
+    var delta = timestamp - lastTimestamp;
+
+    this._lastTimestamp = timestamp;
+    this._scrollerFPS = (1 / delta * 1000);
+
+    if (lastTimestamp && delta < deltaMin) {
+      //TODO: return;
+    }
 
     // reset this._scrolling so that we can capture the next onScroll
     this._scrolling = false;
 
-    // lay out this month and the next
-    this.layoutMonth(this._monthIdx);
-    this.layoutMonth(this._monthIdx + 1);
+    // lay out each month that comes into view
+    var idx = this._monthIdx;
+    while (this.months[idx].top < this._virtualScrollTop + this._viewportHeight) {
+      this.layoutMonth(idx);
+      idx++;
+    }
   },
   layoutMonth: function(monthIdx) {
     // WARNING: runs in RAF, do not trigger reflows or unecessary repaints
@@ -251,11 +266,12 @@ Polymer("paper-date-picker", {
     var month = this.months[monthIdx];
     var n = monthIdx % 2;
     var rafMonth = rafNodes['raf' + n + 'Month'];
+    var offset = this._virtualOffset;
     var vpTop = this._scrollTop;
     var vpBottom = vpTop + this._viewportHeight;
     var titleMonth = rafNodes['rafMonthName' + month.name];
     var titleYear = rafNodes['raf' + n + 'Year' + month.year];
-    var top = month.top;
+    var top = month.top - offset;
     var topPx = top + 'px';
     var padding = this._monthPadding;
     var dayHeight = this._dayHeight;
@@ -264,6 +280,21 @@ Polymer("paper-date-picker", {
     var dayLeft = padding;
     var startOn = month.startOn;
     var numDays = month.numDays;
+
+    // TODO: This is broken now, because we're jumping the scroll area back and
+    // forth, and artifact elements are not moved out of sight
+
+    if (n === 0) {
+      this.debug = {
+        n: n,
+        viewportTop: vpTop,
+        top: top,
+        viewortBottom: vpBottom,
+        monthTop: month.top,
+        positionHeader: 'no',
+        titleMonth: titleMonth.innerHTML
+      };
+    }
 
     // position the header
     var cell, col, row, rowTop;
@@ -282,13 +313,35 @@ Polymer("paper-date-picker", {
       row = Math.floor(cell / 7);
       rowTop = dayTop + (row * dayHeight);
       // only move the day if the target position is in the viewport
-      window.debugVars = [ n, vpTop, rowTop, vpBottom ];
       if (vpTop <= rowTop && rowTop < vpBottom) {
         day = rafNodes['raf' + n + 'Day' + (i+1)]; 
         day.style.top = rowTop + 'px';
         day.style.left = padding + (col * dayWidth) + 'px';
       }
     }
+  },
+  getScrollMonth: function(pos) {
+    // get the first month that is visible at the given position
+    var idx, top, bottom, month;
+    var titleHeight = this._titleHeight;
+    var dayHeight = this._dayHeight;
+    min = Math.floor(pos / ((dayHeight * 6) + titleHeight));
+    max = Math.ceil(pos / ((dayHeight * 4) + titleHeight));
+    while (min <= max) {
+      idx = (min + max) / 2 | 0;
+      month = this.months[idx];
+      top = month.top;
+      bottom = top + month.height;
+      if (bottom > pos && top <= pos) {
+        return idx;
+      } else if (bottom < pos) {
+        min = idx + 1;
+      } else {
+        max = idx - 1;
+      }
+    }
+    console.error("Could not find month at position: ", pos);
+    return -1;
   },
   getMonthIdx: function(year, month) {
     var yearDiff = (year - this.months[0].year);
