@@ -220,6 +220,7 @@ Polymer("paper-date-picker", {
       scrollTop = initialOffset;
       scroller.scrollTop = scrollTop;
       this._virtualOffset = offset;
+      this.resetLayout();
     }
 
     var virtualTop = scrollTop + offset;
@@ -247,7 +248,7 @@ Polymer("paper-date-picker", {
     this._scrollerFPS = (1 / delta * 1000);
 
     if (lastTimestamp && delta < deltaMin) {
-      //TODO: return;
+      //TODO (limit fps): return;
     }
 
     // reset this._scrolling so that we can capture the next onScroll
@@ -258,6 +259,14 @@ Polymer("paper-date-picker", {
     while (this.months[idx].top < this._virtualScrollTop + this._viewportHeight) {
       this.layoutMonth(idx);
       idx++;
+    }
+  },
+  resetLayout: function() {
+    // move all nodes out of viewport
+    var nodes = Object.keys(this.$.rafNodes.$);
+    var rafNodes = this.$.rafNodes.$;
+    for (var i=0; i<nodes.length; i++) {
+      rafNodes[nodes[i]].style.top = '-1000px';
     }
   },
   layoutMonth: function(monthIdx) {
