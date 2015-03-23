@@ -35,7 +35,8 @@ Android.
           <core-scroll-threshold id="calendarListThreshold" scrollTarget="{{$.calendarList}}" 
             lowerThreshold="512" upperThreshold="512" on-lower-trigger="{{loadMoreLower}}" 
             on-upper-trigger="{{loadMoreUpper}}"></core-scroll-threshold>
-          <core-selector class="noscroll-scroller" id="calendarList" itemSelector=".day-item" cross-fade fit>
+          <core-selector id="calendarSelector" target="{{$.calendarList}}" itemsSelector=".month-days core-item:not([disabled])"></core-selector>
+          <div class="noscroll-scroller" id="calendarList" cross-fade fit>
             <template repeat="{{month in months}}">
               <div class="month">
                 <div class="month-header">
@@ -58,7 +59,7 @@ Android.
                 </div>
               </div>
             </template>
-          </core-selector>
+          </div>
         </section>
         <section id="chooseYear" fit>
           <core-list id="yearList" data="{{years}}" selection="{{selectedYear}}" cross-fade fit layout vertical>

@@ -6,6 +6,9 @@
 }
 
 /** hide list scrollbars */
+.noscroll-scroller {
+  overflow-y: auto;
+}
 .noscroll-scroller::-webkit-scrollbar {
   width: 0 !important 
 }
@@ -73,6 +76,9 @@
 #pages {
   background: #fff;
 }
+#calendarList > .month {
+  padding: 0 9px;
+}
 #calendarList .month-name {
   cursor: pointer;
   padding: 8px;
@@ -87,7 +93,6 @@
 #calendarList .month-weekdays .day {
   height: 20px;
   line-height: 20px;
-  cursor: pointer;
 }
 #calendarList .day {
   padding: 0 1px;
@@ -98,12 +103,18 @@
   text-align: center;
   vertical-align: middle;
 }
-#calendarList core-item.day div {
+#calendarList core-item .day {
   width: 32px;
   height: 32px;
-  border-radius: 18px;
 }
-#calendarList core-item.day.today {
+#calendarList core-item:not([disabled]) .day {
+  border-radius: 18px;
+  cursor: pointer;
+}
+#calendarList core-item.core-selected .day {
+  background: #B6D9D6;
+}
+#calendarList core-item.today .day {
   color: #009688;
 }
 
@@ -123,8 +134,4 @@
 
 core-item /deep/ .button-content {
   padding: 0;
-}
-core-item.selected div,
-core-item.selected div {
-  background: #B6D9D6;
 }
