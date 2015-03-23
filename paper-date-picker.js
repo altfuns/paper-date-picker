@@ -34,8 +34,8 @@ Polymer("paper-date-picker", {
     this.localeChanged();
     this.startYear = 1900;
     this.endYear = 2100;
-    this.populateCalendar();
     this.headingDate = this.value ? this.value : new Date();
+    this.populateCalendar(this.headingDate.getFullYear());
     this.scrollToDate(this.headingDate);
 
     // track page transitions
@@ -46,44 +46,41 @@ Polymer("paper-date-picker", {
       this._pageTransitioning = false;
     });
   },
-  populateCalendar: function() {
-    var year, month, days, day, date = new Date();
+  populateCalendar: function(year) {
+    var month, days, day, date = new Date();
     var thisYear = this.today.getFullYear();
     var thisMonth = this.today.getMonth();
     var thisDay = this.today.getDate();
 
-    for (year=this.startYear; year<=this.endYear; year++) {
-      date.setYear(year);
-      for (month=0; month<12; month++) {
-        days = [];
-        day = 1;
-        date.setMonth(month);
-        date.setDate(1);
-        
-        // add "padding" days
-        for (d=0; d<date.getDay(); d++) {
-          days.push({day: null});
-        }
+    date.setYear(year);
+    for (month=0; month<12; month++) {
+      days = [];
+      day = 1;
+      date.setMonth(month);
+      date.setDate(1);
+      
+      // add "padding" days
+      for (d=0; d<date.getDay(); d++) {
+        days.push({day: null});
+      }
 
-        // add actual days 
-        while (date.getMonth() == month) {
-          days.push({
-            year: year,
-            month: month,
-            day: day,
-            isToday: year == thisYear && month == thisMonth && day == thisDay
-          });
-          date.setDate(++day);
-        }
-        monthData = {
+      // add actual days 
+      while (date.getMonth() == month) {
+        days.push({
           year: year,
           month: month,
-          days: days
-        };
-        this.months.push(monthData);
-        this.days.push(days);
+          day: day,
+          isToday: year == thisYear && month == thisMonth && day == thisDay
+        });
+        date.setDate(++day);
       }
-      this.years.push({year: year});
+      monthData = {
+        year: year,
+        month: month,
+        days: days
+      };
+      this.months.push(monthData);
+      this.days.push(days);
     }
   },
   getMonthIdx: function(year, month) {

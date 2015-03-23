@@ -6,7 +6,7 @@
 }
 
 /** hide list scrollbars */
-core-list::-webkit-scrollbar {
+.noscroll-scroller::-webkit-scrollbar {
   width: 0 !important 
 }
 /** Horizontal ******************/
@@ -121,10 +121,10 @@ core-list::-webkit-scrollbar {
   border-radius: 32px;
 }
 
-paper-item /deep/ .button-content {
+core-item /deep/ .button-content {
   padding: 0;
 }
 core-item.selected div,
-paper-item.selected div {
+core-item.selected div {
   background: #B6D9D6;
 }

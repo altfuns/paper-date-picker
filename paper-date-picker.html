@@ -3,7 +3,7 @@
 <link rel="import" href="../core-scroll-threshold/core-scroll-threshold.html">
 <link rel="import" href="../paper-item/paper-item.html">
 <link rel="import" href="../core-animated-pages/core-animated-pages.html">
-<link rel="import" href="../core-list/core-list.html">
+<link rel="import" href="../core-selector/core-selector.html">
 
 <!--
 Material Design [Pickers](http://www.google.com/design/spec/components/pickers.html)
@@ -35,25 +35,30 @@ Android.
           <core-scroll-threshold id="calendarListThreshold" scrollTarget="{{$.calendarList}}" 
             lowerThreshold="512" upperThreshold="512" on-lower-trigger="{{loadMoreLower}}" 
             on-upper-trigger="{{loadMoreUpper}}"></core-scroll-threshold>
-          <core-list class="noscroll-scroller" id="calendarList" data="{{days}}" groups="{{months}}" selection="{{selectedDate}}" 
-            grid width="34" height="32" cross-fade fit>
-            <template>
-              <div class="divider" divider>
-                <div class="month-name" on-press="{{scrollToMonth(model.year, model.month)}}">
-                  {{monthNames[groupModel.month]}} {{groupModel.year}}
+          <core-selector class="noscroll-scroller" id="calendarList" itemSelector=".day-item" cross-fade fit>
+            <template repeat="{{month in months}}">
+              <div class="month">
+                <div class="month-header">
+                  <div class="month-name" on-press="{{scrollToMonth(month.year, month.month)}}">
+                    {{monthNames[month.month]}} {{month.year}}
+                  </div>
+                  <div class="month-weekdays" layout horizontal>
+                    <template repeat="{{weekday in weekdays}}">
+                      <div class="day">{{weekday[0]}}</div>
+                    </template>
+                  </div>
                 </div>
-                <div class="month-weekdays" layout horizontal>
-                  <template repeat="{{weekday in weekdays}}">
-                    <div class="day">{{weekday[0]}}</div>
+                <div class="month-days" layout horizontal wrap>
+                  <template repeat="{{month.days}}">
+                    <core-item disabled?="{{!day}}" class="day-item {{ {today: isToday, selected: selected} | tokenList }}" 
+                      layout vertical center>
+                      <div class="day">{{day}}</div>
+                    </core-item>
                   </template>
                 </div>
               </div>
-              <core-item disabled?="{{!model.day}}" class="day {{ {today: model.isToday, selected: selected} | tokenList }}" 
-                layout vertical center>
-                <div>{{model.day}}</div>
-              </paper-item>
             </template>
-          </core-list>
+          </core-selector>
         </section>
         <section id="chooseYear" fit>
           <core-list id="yearList" data="{{years}}" selection="{{selectedYear}}" cross-fade fit layout vertical>
