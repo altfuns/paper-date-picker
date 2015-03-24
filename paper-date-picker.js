@@ -23,6 +23,7 @@ Polymer("paper-date-picker", {
     this.narrow = false;
     this.localeChanged();
     this.headingDate = this.value ? this.value : new Date();
+    this.years = this.$.calendar.years;
 
     // track page transitions
     this.$.pages.addEventListener('core-animated-pages-transition-prepare', function() {
@@ -35,10 +36,10 @@ Polymer("paper-date-picker", {
   tapHeadingDay: function() {
     if (this.$.pages.selected !== 0) {
       this.selectPage(0, function() {
-        this.scrollToDate(this.headingDate);
+        this.$.calendar.scrollToDate(this.headingDate);
       }.bind(this));
     } else {
-      this.scrollToDate(this.headingDate);
+      this.$.calendar.scrollToDate(this.headingDate);
     }
   },
   tapHeadingMonth: function() {
@@ -57,10 +58,12 @@ Polymer("paper-date-picker", {
     this.$.pages.selected = page;
   },
   scrollYearList: function(year, cb) {
-    var idx = year - this.startYear;
-    this.$.yearList.scrollToItem(idx);
-    this.$.yearList.scrollTop -= 94;
-    if(cb) cb();
+    this.async(function() {
+      var idx = year - this.startYear;
+      this.$.yearList.scrollToItem(idx);
+      this.$.yearList.scrollTop -= 94;
+      if(cb) cb();
+    });
   },
   dateSelected: function(e, detail) {
     this.value = detail.date;

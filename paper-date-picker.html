@@ -3,7 +3,7 @@
 <link rel="import" href="../core-scroll-threshold/core-scroll-threshold.html">
 <link rel="import" href="../paper-item/paper-item.html">
 <link rel="import" href="../core-animated-pages/core-animated-pages.html">
-<link rel="import" href="../core-selector/core-selector.html">
+<link rel="import" href="../core-list/core-list.html">
 <link rel="import" href="paper-calendar.html">
 
 <script src="../moment/min/moment-with-locales.min.js"></script>
@@ -37,7 +37,7 @@ Android.
           <paper-calendar id="calendar" locale="{{locale}}" minYear="{{minYear}}" maxYear="{{maxYear}}" on-date-select="{{dateSelected}}"></paper-calendar>
         </section>
         <section id="chooseYear" fit>
-          <core-list id="yearList" data="{{years}}" selection="{{selectedYear}}" cross-fade fit layout vertical>
+          <core-list id="yearList" data="{{$.calendar.years}}" selection="{{selectedYear}}" cross-fade fit layout vertical>
             <template>
               <paper-item class="year {{ {selected: selected, } | tokenList}}" 
                 layout horizontal center-justified><div>{{model.year}}</div></paper-item>

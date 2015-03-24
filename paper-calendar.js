@@ -33,14 +33,25 @@ Polymer("paper-calendar", {
     this.localeChanged();
     this.startYear = this.startYear ? this.startYear : 1900;
     this.endYear = this.endYear ? this.endYear : 2100;
-    this.populateCalendar(this.initialDate.getFullYear());
-
-    // monitor calendarList for mutations
-    this._boundCalendarListMutationCallback = this.calendarListUpdated;
-    this.onMutation(this.$.calendarList, this._boundCalendarListMutationCallback);
-
+    for (var y=this.startYear; y<=this.endYear; y++) {
+      this.years.push(y);
+    }
+    this.async(function() {
+      this.populateCalendar(this.initialDate.getFullYear());
+    });
     this.scrollToDate(this.initialDate);
   },
+  /* TODO: figure out a user-friendly way to auto-populate years
+   * It takes more time on mobile, so there should be some indication that a
+   * year is loading. One idea is to make it so that when the user scrolls to
+   * the bottom, an indicator appears showing that the content for that year is
+   * loading. We'd need extra logic to handle scrolling and removal of years
+   * that are hidden from view.
+  loadMoreUpper: function() {
+  },
+  loadMoreLower: function() {
+  }
+  */
   populateCalendar: function(year) {
     var month, days, day, date = new Date();
     var thisYear = this.today.getFullYear();
@@ -90,21 +101,11 @@ Polymer("paper-calendar", {
     var monthDiff = (month - this.months[0].month);
     return (yearDiff * 12) + monthDiff;
   },
-  calendarListUpdated: function(observer, mutations) {
-    this.fire('calendar-updated');
-    if (this._scrollToMonth) {
-      this._scrollToMonth();
-    }
-  },
   scrollToMonth: function(year, month) {
-    this._scrollToMonth = null;
-    var el = this.querySelector('month-' + year + '-' + month);
-    if (el) {
-      debugger;
+    this.async(function() {
+      var el = this.querySelector(':host /deep/ .month-' + year + '-' + month);
       this.$.calendarList.scrollTop = el.offsetTop;
-    } else {
-      this._scrollToMonth = this.scrollToMonth.bind(this, year, month);
-    }
+    });
   },
   scrollToDate: function(date) {
     if (!date) {

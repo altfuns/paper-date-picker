@@ -8,9 +8,11 @@
 <polymer-element name="paper-calendar" attributes="locale minYear maxYear">
   <template>
     <link rel="stylesheet" href="paper-calendar.css">
+    <!-- TODO
     <core-scroll-threshold id="calendarListThreshold" scrollTarget="{{$.calendarList}}" 
-      lowerThreshold="512" upperThreshold="512" on-lower-trigger="{{loadMoreLower}}" 
+      lowerThreshold="256" upperThreshold="256" on-lower-trigger="{{loadMoreLower}}" 
       on-upper-trigger="{{loadMoreUpper}}"></core-scroll-threshold>
+    -->
     <core-selector id="calendarSelector" target="{{$.calendarList}}" itemsSelector=".month-days core-item:not([disabled])"
       on-core-select="{{dateSelected}}"></core-selector>
     <div id="calendarList" cross-fade fit>
