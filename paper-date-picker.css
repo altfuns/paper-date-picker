@@ -5,13 +5,6 @@
   font-size: 14px;
 }
 
-/** hide list scrollbars */
-.noscroll-scroller {
-  overflow-y: auto;
-}
-.noscroll-scroller::-webkit-scrollbar {
-  width: 0 !important 
-}
 /** Horizontal ******************/
 #datePicker {
   width: 512px;
@@ -24,12 +17,12 @@
 }
 
 /** Narrow *********************/
-:host[narrow] #datePicker {
+:host([narrow]) #datePicker {
   width: 280px;
   height: 496px;
 }
-:host[narrow] #heading,
-:host[narrow] #pages {
+:host([narrow]) #heading,
+:host([narrow]) #pages {
   width: 280px !important;
 }
 
@@ -76,47 +69,6 @@
 #pages {
   background: #fff;
 }
-#calendarList > .month {
-  padding: 0 9px;
-}
-#calendarList .month-name {
-  cursor: pointer;
-  padding: 8px;
-  font-size: 14px;
-  text-align: center;
-  font-weight: bold;
-}
-#calendarList .month-weekdays {
-  font-size: 13px;
-  font-weight: bold;
-}
-#calendarList .month-weekdays .day {
-  height: 20px;
-  line-height: 20px;
-}
-#calendarList .day {
-  padding: 0 1px;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  line-height: 32px;
-  text-align: center;
-  vertical-align: middle;
-}
-#calendarList core-item .day {
-  width: 32px;
-  height: 32px;
-}
-#calendarList core-item:not([disabled]) .day {
-  border-radius: 18px;
-  cursor: pointer;
-}
-#calendarList core-item.core-selected .day {
-  background: #B6D9D6;
-}
-#calendarList core-item.today .day {
-  color: #009688;
-}
 
 /** Year List *******************/
 #yearList .year {
@@ -130,8 +82,4 @@
   width: 64px;
   height: 64px;
   border-radius: 32px;
-}
-
-core-item /deep/ .button-content {
-  padding: 0;
 }
