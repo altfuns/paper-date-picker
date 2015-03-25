@@ -1,7 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../core-media-query/core-media-query.html">
 <link rel="import" href="../core-scroll-threshold/core-scroll-threshold.html">
-<link rel="import" href="../paper-item/paper-item.html">
 <link rel="import" href="../core-animated-pages/core-animated-pages.html">
 <link rel="import" href="../core-list/core-list.html">
 <link rel="import" href="paper-calendar.html">
@@ -37,10 +36,11 @@ Android.
           <paper-calendar id="calendar" locale="{{locale}}" minYear="{{minYear}}" maxYear="{{maxYear}}" on-date-select="{{dateSelected}}"></paper-calendar>
         </section>
         <section id="chooseYear" fit>
-          <core-list id="yearList" data="{{$.calendar.years}}" selection="{{selectedYear}}" cross-fade fit layout vertical>
-            <template>
-              <paper-item class="year {{ {selected: selected, } | tokenList}}" 
-                layout horizontal center-justified><div>{{model.year}}</div></paper-item>
+          <core-selector id="yearSelector" target="{{$.yearList}}" valueAttr="label" 
+            itemSelector="#yearList .year" on-core-select="{{yearSelected}}">
+          <div id="yearList" cross-fade fit layout vertical>
+            <template repeat="{{year in years}}">
+              <div class="year" label="{{year}}" layout horizontal center-justified><div>{{year}}</div></div>
             </template>
           </core-list>
         </section>

@@ -71,8 +71,14 @@
 }
 
 /** Year List *******************/
+#yearList {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 #yearList .year {
   height: 68px;
+  min-height: 68px;
+  cursor: pointer;
 }
 #yearList .year div {
   text-align: center;
@@ -82,4 +88,11 @@
   width: 64px;
   height: 64px;
   border-radius: 32px;
+}
+#yearList .year.core-selected div {
+  background: #B6D9D6;
+}
+
+:host([isTouch]) #yearList::-webkit-scrollbar {
+  width: 0 !important 
 }
