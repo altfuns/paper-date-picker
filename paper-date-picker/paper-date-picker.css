@@ -1,0 +1,108 @@
+:host /deep/ * {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+:host {
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+  color: #6D6D6D;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+/** Horizontal ******************/
+#datePicker {
+  width: 540px;
+  height: 240px;
+}
+#heading, 
+#pages,
+paper-calendar {
+  width: 270px !important;
+  height: 240px;
+}
+
+/** Narrow *********************/
+:host([narrow]) #datePicker {
+  width: 270px;
+  height: 450px;
+}
+:host([narrow]) #heading {
+  height: 210px;
+}
+
+/** Heading ********************/
+#heading {
+  color: #fff; 
+  background: #009688;
+  text-align: center;
+  font-kerning: auto;
+  letter-spacing: normal;
+}
+#heading .weekday {
+  background: #008D7F;
+  padding: 8px;
+  font-size: 14px;
+}
+#heading .date {
+  padding: 10px;
+  font-weight: normal;
+}
+#heading .date .month {
+  font-size: 24px;
+  text-transform: uppercase;
+}
+#heading .date .day {
+  font-size: 78px;
+}
+#heading .date .year {
+  font-size: 24px;
+}
+#heading .date .year,
+#heading.pg-chooseYear .date .month,
+#heading.pg-chooseYear .date .day {
+  color: #8acfc8;
+}
+#heading.pg-chooseYear .date .year {
+  color: inherit; 
+}
+#heading .date .day:hover,
+#heading .date .month:hover,
+#heading .date .year:hover {
+  cursor: pointer;
+}
+
+/** Calendar/Year picker ********/
+#pages {
+  background: #eee;
+}
+
+/** Year List *******************/
+#yearSelector {
+  display: block;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+#yearList .year {
+  height: 68px;
+  min-height: 68px;
+}
+#yearList .year:hover {
+  cursor: pointer;
+}
+#yearList .year div {
+  text-align: center;
+  vertical-align: middle;
+  line-height: 64px;
+  margin: 2px;
+  width: 64px;
+  height: 64px;
+  border-radius: 32px;
+}
+#yearList .year.core-selected div {
+  background: #B6D9D6;
+}
+
+:host([isTouch]) #yearList::-webkit-scrollbar {
+  width: 0 !important 
+}
