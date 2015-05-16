@@ -1,16 +1,15 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../core-scroll-threshold/core-scroll-threshold.html">
-<link rel="import" href="../core-selector/core-selector.html">
-<link rel="import" href="../core-resizable/core-resizable.html">
+<link rel="import" href="../iron-selector/iron-selector.html">
+<link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 
 <script src="../moment/min/moment-with-locales.min.js"></script>
 
 <dom-module id="paper-calendar">
   <link rel="stylesheet" href="paper-calendar.css">
   <template>
-    <core-selector id="calendarSelector" target="{{$.calendarList}}" valueAttr="label"
+    <iron-selector id="calendarSelector" target="{{$.calendarList}}" valueAttr="label"
       itemsSelector=".month-days .day-item:not([disabled])"
-      on-core-select="dateSelected"></core-selector>
+      on-iron-select="dateSelected"></iron-selector>
     <div id="calendarList" cross-fade fit>
       <template repeat="{{month in months}}">
         <div class="month month-{{month.year}}-{{month.month}}">
@@ -42,8 +41,13 @@
   </template>
 </dom-module>
 <script>
-  Polymer(Polymer.mixin({
+  Polymer({
     is: 'paper-calendar',
+
+    behaviors: [
+      Polymer.IronResizableBehavior
+    ],
+
     properties: {
       /**
        * The current locale
@@ -88,9 +92,11 @@
         readOnly: true
       },
     },
+
     eventDelegates: {
-      'core-resize': 'updateSize'
+      'iron-resize': 'updateSize'
     },
+
     once: function(obj, eventName, callback) {
       var doCallback = function() {
         callback.apply(obj, arguments);
@@ -98,9 +104,11 @@
       };
       obj.addEventListener(eventName, doCallback);
     },
+
     localeChanged: function() {
       moment.locale(this.locale);
     },
+
     ready: function() {
       this.selectedDate = null;
       this.isTouch = 'ontouchstart' in window;
@@ -123,12 +131,15 @@
       });
       this.scrollToDate(this.initialDate);
     },
+
     attached: function() {
       this.resizableAttachedHandler();
     },
+
     detached: function() {
       this.resizableDetachedHandler();
     },
+
     /* TODO: figure out a user-friendly way to auto-populate years
      * It takes more time on mobile, so there should be some indication that a
      * year is loading. One idea is to make it so that when the user scrolls to
@@ -140,6 +151,7 @@
     loadMoreLower: function() {
     }
     */
+
     populate: function(year) {
       // this currently replaces the 
       this.months = [];
@@ -186,11 +198,13 @@
         this.months.push(monthData);
       }
     },
+
     getMonthIdx: function(year, month) {
       var yearDiff = (year - this.months[0].year);
       var monthDiff = (month - this.months[0].month);
       return (yearDiff * 12) + monthDiff;
     },
+
     scrollToMonth: function(year, month) {
       if (!this._sized) {
         this.once(this, 'paper-calendar-sized', this.scrollToMonth.bind(this, year, month));
@@ -199,12 +213,14 @@
         this.$.calendarList.scrollTop = el.offsetTop;
       }
     },
+
     scrollToDate: function(date) {
       if (!date) {
         date = this.initialDate;
       }
       this.scrollToMonth(date.getFullYear(), date.getMonth());
     },
+
     dateSelected: function(event, detail) {
       if (!detail.isSelected) return false;
       var dateStr = detail.item.getAttribute('label');
@@ -214,6 +230,7 @@
       this.fire('date-select', {date: this.selectedDate}, this);
       this.scrollToDate(this.selectedDate);
     },
+
     updateSize: function() {
       if (this.$.calendarList.offsetHeight > 0) {
         this._sized = true;
@@ -222,8 +239,9 @@
         this._sized = false;
       }
     },
+
     _getDayName: function(date) {
       return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
     },
-  }, Polymer.CoreResizable));
+  });
   </script>

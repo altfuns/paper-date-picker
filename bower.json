@@ -21,14 +21,22 @@
   ],
   "dependencies": {
     "moment": "~2.8.3",
-    "polymer": "Polymer/polymer#v0.9.0",
-    "webcomponents-lite": "webcomponents/webcomponents-lite#^0.6.0",
+    "polymer": "Polymer/polymer#master",
+    "webcomponents-lite": "webcomponents/webcomponents-lite#master",
     "core-list": "Polymer/core-list#0.8-preview",
-    "iron-media-query": "Polymer/iron-media-query#v0.9.0",
-    "iron-pages": "Polymer/iron-pages#v0.9.0"
+    "iron-media-query": "polymerelements/iron-media-query#master",
+    "iron-resizable-behavior": "polymerelements/iron-resizable-behavior#master",
+    "iron-pages": "polymerelements/iron-pages#master",
+    "iron-selector": "polymerelements/iron-selector#master"
   },
   "devDependencies": {
     "paper-dialog": "Polymer/paper-dialog#master",
-    "font-roboto": "Polymer/font-roboto#master"
+    "font-roboto": "Polymer/font-roboto#master",
+    "iron-component-page": "polymerelements/iron-component-page#master"
+  },
+  "resolutions": {
+    "iron-resizable-behavior": "master",
+    "iron-selector": "master",
+    "polymer": "master"
   }
 }
