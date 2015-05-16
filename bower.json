@@ -22,7 +22,7 @@
   "dependencies": {
     "moment": "~2.8.3",
     "polymer": "Polymer/polymer#v0.9.0",
-    "webcomponents": "webcomponents/webcomponents-lite#^0.6.0",
+    "webcomponents-lite": "webcomponents/webcomponents-lite#^0.6.0",
     "core-list": "Polymer/core-list#0.8-preview",
     "iron-media-query": "Polymer/iron-media-query#v0.9.0",
     "iron-pages": "Polymer/iron-pages#v0.9.0"
