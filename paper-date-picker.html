@@ -40,17 +40,17 @@ example:
 @homepage https://github.com/bendavis78/paper-date-picker
 -->
 
-<polymer-element name="paper-date-picker" attributes="date locale minYear maxYear responsiveWidth forceNarrow">
+<dom-module id="paper-date-picker">
+  <link rel="stylesheet" href="paper-date-picker.css">
   <template>
-    <link rel="stylesheet" href="paper-date-picker.css">
     <core-media-query query="max-width: {{forceNarrow ? '' : responsiveWidth}}" queryMatches="{{queryMatches}}"></core-media-query>
     <div id="datePicker" layout vertical?="{{narrow}}" horizontal?="{{!narrow}}">
       <div id="heading" class="heading-content pg-{{$.pages.selectedItem.id}}" layout vertical>
         <div class="weekday">{{headingDate|dateFormat('dddd')}}</div>
         <div class="date" flex layout vertical around-justified>
-          <div class="month" on-tap="{{tapHeadingMonth}}">{{headingDate|dateFormat('MMM')}}</div>
-          <div class="day" on-tap="{{tapHeadingDay}}">{{headingDate|dateFormat('D')}}</div>
-          <div class="year" on-tap="{{tapHeadingYear}}">{{headingDate|dateFormat('YYYY')}}</div>
+          <div class="month" on-tap="tapHeadingMonth">{{headingDate|dateFormat('MMM')}}</div>
+          <div class="day" on-tap="tapHeadingDay">{{headingDate|dateFormat('D')}}</div>
+          <div class="year" on-tap="tapHeadingYear">{{headingDate|dateFormat('YYYY')}}</div>
         </div>
       </div>
       <core-animated-pages selectedProperty="active" transitions="cross-fade" id="pages" notap relative>
@@ -59,7 +59,7 @@ example:
         </section>
         <section id="chooseYear">
           <core-selector id="yearSelector" target="{{$.yearList}}" valueAttr="label" 
-            itemSelector="#yearList .year" on-core-select="{{yearSelected}}">
+            itemSelector="#yearList .year" on-core-select="yearSelected">
           <div id="yearList" cross-fade layout vertical>
             <template repeat="{{year in years}}">
               <div class="year" label="{{year}}" layout horizontal center-justified><div>{{year}}</div></div>
@@ -69,132 +69,193 @@ example:
       </core-animated-pages>
     </div>
   </template>
-  <script>
-    var CALENDAR = 0
-    var YEARLIST = 1
-
-    Polymer({
-      publish: {
-        /**
-         * The selected date (YYYY-MM-DD)
-         * @attribute date
-         * @type Date
-         * @default today's date
-         */
-        date: null,
-        /**
-         * Maximum screen width at which the picker uses a vertical layout
-         * @attribute responsiveWidth
-         * @type string
-         * @default '560px'
-         */
-        responsiveWidth: '560px',
-        /**
-         * The current locale
-         * @attribute locale
-         * @type string
-         * @default 'en'
-         */
-        locale: 'en',
-        /*
-         * The minumum allowable year
-         * @attribute minYear
-         * @type int
-         * @default 1900
-         */
-        minYear: null,
-        /*
-         * The maximum allowable year
-         * @attribute minYear
-         * @type int
-         * @default 1900
-         */
-        maxYear: null,
-        /**
-         * Force narrow layout
-         * @attribute forceNarrow
-         * @type boolean
-         * @default false
-         */
-        forceNarrow: false,
-        narrow: {type: 'boolean', value: false, reflect: true},
-        isTouch: {type: 'boolean', value: false, reflect: true}
-      },
-      ready: function() {
-        this.today = this.$.calendar.today;
-        this.isTouch = 'ontouchstart' in window;
-        this.narrow = false;
-        this.localeChanged();
-        this.headingDate = this.date ? this.date : new Date();
-        this.years = this.$.calendar.years;
-      },
-      tapHeadingDay: function() {
-        this.$.calendar.scrollToDate(this.headingDate);
-        if (this.$.pages.selected !== CALENDAR) {
-          this.selectPage(CALENDAR);
-          this.async(this.notifyResize);
-        }
-      },
-      tapHeadingMonth: function() {
-        this.tapHeadingDay();
-      },
-      tapHeadingYear: function() {
-        var year = this.headingDate.getFullYear();
-        this.scrollToYear(year);
-        if (this.$.pages.selected !== YEARLIST) {
-          this.$.yearSelector.selected = year.toString();
-          this.selectPage(YEARLIST);
-        }
-      },
-      selectPage: function(page, callback) {
-        this.$.pages.selected = page;
-      },
-      scrollToYear: function(year) {
-        this.async(function() {
-          var el = this.$.yearList.querySelector('.year[label="' + year + '"]')
-          console.log(el.offsetTop - 94);
-          this.$.yearSelector.scrollTop = el.offsetTop - 94;
-        });
-      },
-      yearSelected: function(e, detail) {
-        var year = parseInt(detail.item.getAttribute('label'));
-        var headingDate = new Date(this.headingDate)
-        if (year !== headingDate.getFullYear()) {
-          this.async(function() {
-            headingDate.setFullYear(year);
-            this.headingDate = headingDate;
-          });
-          this.$.calendar.populate(year);
-          this.async(function() {
-            this.$.calendar.scrollToDate(this.headingDate);
-            this.selectPage(CALENDAR)
-          });
-        }
-      },
-      dateSelected: function(e, detail) {
-        this.date = detail.date;
-      },
-      dateChanged: function(oldValue, newValue) {
-        if (newValue) {
-          this.headingDate = newValue;
-        } else {
-          this.headingDate = this.today;
-        }
-      },
-      // attributes that propagate to paper-calendar
-      localeChanged: function() {
-        moment.locale(this.locale);
-        this.$.calendar.locale = this.locale;
-      },
-      minYearChanged: function() {
-        this.$.calendar.minYear = this.minYear;
-      },
-      maxYearChanged: function() {
-        this.$.calendar.maxYear = this.maxYear;
-      },
-      queryMatchesChanged: function() {
-        this.narrow = this.queryMatches || this.forceNarrow;
-      }
-    });
-  </script>
 </polymer-element>
+<script>
+  var CALENDAR = 0;
+  var YEARLIST = 1;
+
+  Polymer({
+    is: 'paper-date-picker',
+    properties: {
+      /**
+       * The selected date (YYYY-MM-DD)
+       * @attribute date
+       * @type Date
+       * @default today's date
+       */
+      date: {
+        type: Date,
+        value: function() {
+          return new Date();
+        },
+        observer: 'dateChanged'
+      },
+
+      /**
+       * Maximum screen width at which the picker uses a vertical layout
+       * @attribute responsiveWidth
+       * @type string
+       * @default '560px'
+       */
+      responsiveWidth: {
+        type: String,
+        value: '560px',
+      },
+
+      /**
+       * The current locale
+       * @attribute locale
+       * @type string
+       * @default 'en'
+       */
+      locale: {
+        type: String,
+        value: 'en',
+        observer: 'localeChanged'
+      },
+
+      /*
+       * The minumum allowable year
+       * @attribute minYear
+       * @type int
+       * @default 1900
+       */
+      minYear: {
+        type: Number,
+        value: 1900,
+        observer: 'minYearChanged'
+      },
+
+      /*
+       * The maximum allowable year
+       * @attribute minYear
+       * @type int
+       * @default 2100
+       */
+      maxYear: {
+        type: Number,
+        value: 2100,
+        observer: 'maxYearChanged'
+      },
+
+      /**
+       * Force narrow layout
+       * @attribute forceNarrow
+       * @type boolean
+       * @default false
+       */
+      forceNarrow: {
+        type: Boolean,
+        value: false
+      },
+
+      queryMatches: {
+        type: Boolean,
+        value: false,
+        observer: 'queryMatchesChanged'
+      },
+
+      narrow: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+        readOnly: true
+      },
+
+      isTouch: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+        readOnly: true
+      },
+    },
+
+    ready: function() {
+      this.today = this.$.calendar.today;
+      this.isTouch = 'ontouchstart' in window;
+      this.narrow = false;
+      this.localeChanged();
+      this.headingDate = this.date ? this.date : new Date();
+      this.years = this.$.calendar.years;
+    },
+
+    tapHeadingDay: function() {
+      this.$.calendar.scrollToDate(this.headingDate);
+      if (this.$.pages.selected !== CALENDAR) {
+        this.selectPage(CALENDAR);
+        this.async(this.notifyResize);
+      }
+    },
+
+    tapHeadingMonth: function() {
+      this.tapHeadingDay();
+    },
+
+    tapHeadingYear: function() {
+      var year = this.headingDate.getFullYear();
+      this.scrollToYear(year);
+      if (this.$.pages.selected !== YEARLIST) {
+        this.$.yearSelector.selected = year.toString();
+        this.selectPage(YEARLIST);
+      }
+    },
+
+    selectPage: function(page, callback) {
+      this.$.pages.selected = page;
+    },
+
+    scrollToYear: function(year) {
+      this.async(function() {
+        var el = this.$.yearList.querySelector('.year[label="' + year + '"]');
+        console.log(el.offsetTop - 94);
+        this.$.yearSelector.scrollTop = el.offsetTop - 94;
+      });
+    },
+
+    yearSelected: function(e, detail) {
+      var year = parseInt(detail.item.getAttribute('label'));
+      var headingDate = new Date(this.headingDate);
+      if (year !== headingDate.getFullYear()) {
+        this.async(function() {
+          headingDate.setFullYear(year);
+          this.headingDate = headingDate;
+        });
+        this.$.calendar.populate(year);
+        this.async(function() {
+          this.$.calendar.scrollToDate(this.headingDate);
+          this.selectPage(CALENDAR);
+        });
+      }
+    },
+
+    dateSelected: function(e, detail) {
+      this.date = detail.date;
+    },
+
+    dateChanged: function(oldValue, newValue) {
+      if (newValue) {
+        this.headingDate = newValue;
+      } else {
+        this.headingDate = this.today;
+      }
+    },
+
+    // attributes that propagate to paper-calendar
+    localeChanged: function() {
+      moment.locale(this.locale);
+      this.$.calendar.locale = this.locale;
+    },
+
+    minYearChanged: function() {
+      this.$.calendar.minYear = this.minYear;
+    },
+
+    maxYearChanged: function() {
+      this.$.calendar.maxYear = this.maxYear;
+    },
+
+    queryMatchesChanged: function() {
+      this.narrow = this.queryMatches || this.forceNarrow;
+    }
+  });
+  </script>

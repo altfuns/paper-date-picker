@@ -7,7 +7,7 @@
 
   <title>paper-date-picker Demo</title>
   
-  <script src="../webcomponentsjs/webcomponents.js"></script>
+  <script src="../webcomponentsjs/webcomponents-lite.min.js"></script>
 
   <link rel="import" href="paper-date-picker.html">
   <link rel="import" href="../font-roboto/roboto.html">
@@ -65,7 +65,7 @@
       var scope = document.querySelector('#scope');
       scope.dateSelected = function() {
         scope.date = scope.$.picker.date;
-      },
+      };
       scope.showDialog = function() {
         this.$.dialog.toggle();
       };
